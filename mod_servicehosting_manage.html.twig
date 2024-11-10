@@ -1,0 +1,92 @@
+{% extends 'layout_default.phtml' %}
+
+{% block meta_title %}
+    {{ 'Service hosting management'|trans }}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>{{ 'Service hosting management'|trans }}</h5>
+            </div>
+            <div class="card-body">
+                <!-- Service Information -->
+                <h6>{{ 'Service Information'|trans }}</h6>
+                <table class="table table-bordered table-striped">
+                    <tbody>
+                        <tr>
+                            <td>{{ 'ID'|trans }}</td>
+                            <td>{{ service.id }}</td>
+                        </tr>
+                        <tr>
+                            <td>{{ 'Domain'|trans }}</td>
+                            <td>{{ service.domain }}</td>
+                        </tr>
+                        <tr>
+                            <td>{{ 'Status'|trans }}</td>
+                            <td>{{ service.status }}</td>
+                        </tr>
+                        <tr>
+                            <td>{{ 'IP'|trans }}</td>
+                            <td>{{ service.ip }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer text-center">
+                {{ order_actions }}
+                
+                <!-- Updated "Jump to control panel" button -->
+                <a id="jumpToCpanel" class="btn btn-primary" href="javascript:void(0);" onclick="openCpanelInNewTab('{{ order.id }}', '{{ CSRFToken }}')">
+                    <svg class="icon" width="24" height="24">
+                        <use xlink:href="#server" />
+                    </svg>
+                    <span>{{ 'Jump to control panel'|trans }}</span>
+                </a>
+                
+                {% if service.reseller %}
+                <a class="btn btn-primary" href="{{ server.reseller_cpanel_url }}" target="_blank">
+                    <svg class="icon" width="24" height="24">
+                        <use xlink:href="#server" />
+                    </svg>
+                    <span>{{ 'Reseller control panel'|trans }}</span>
+                </a>
+                {% endif %}
+
+                <a class="btn btn-primary api-link"
+                    href="{{ 'api/admin/servicehosting/sync'|link({ 'order_id': order.id, 'CSRFToken': CSRFToken }) }}"
+                    data-api-confirm="{{ 'Are you sure?'|trans }}"
+                    data-api-msg="{{ 'Account was synced'|trans }}">
+                    <svg class="icon" width="24" height="24">
+                        <use xlink:href="#refresh" />
+                    </svg>
+                    <span>{{ 'Sync with server'|trans }}</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Function to fetch and open the control panel link in a new tab
+    function openCpanelInNewTab(orderId, csrfToken) {
+        // Fetch the login URL from the API
+        fetch(`/api/client/servicehosting/get_login_url?order_id=${orderId}&CSRFToken=${csrfToken}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.result) {
+                    // Open the retrieved URL in a new tab
+                    window.open(data.result, '_blank');
+                } else {
+                    alert("Failed to retrieve the control panel link.");
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching the control panel link:", error);
+                alert("An error occurred while retrieving the control panel link.");
+            });
+    }
+</script>
+{% endblock %}
